@@ -50,6 +50,8 @@ Link: https://docs.docker.com/engine/install/
 
 `cd kuksa-databroker/kuksa-ditto`
 
+`python -m venv env`
+
 `source env/bin/activate`
 
 `pip install -r requirements.txt`

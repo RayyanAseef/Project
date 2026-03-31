@@ -129,11 +129,11 @@ async def main():
 # print(response)
  
  # STEP 2
-# with open("VSS_Ditto.json", "r") as dittoFile:
-#     data = json.load(dittoFile)
+with open("VSS_Ditto.json", "r") as dittoFile:
+    data = json.load(dittoFile)
  
-# response = put_thing("org.ovin:my-vehicle", data)
+response = put_thing("org.ovin:my-vehicle", data)
 # print(response)
 
 # Run the asynchronous main function
-asyncio.run(main())
+# asyncio.run(main())

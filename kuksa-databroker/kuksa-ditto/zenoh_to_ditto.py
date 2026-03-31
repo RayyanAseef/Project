@@ -1,6 +1,7 @@
 import json
 import requests
 import zenoh
+import time
 
 thingsURL = "http://localhost:8080/api/2/things/"
 auth = ("ditto", "ditto")
@@ -58,36 +59,71 @@ def listener(sample):
         payload = json.loads(sample.payload.to_string())
         print("Received from Zenoh:", payload)
 
-        response = put_feature_value(THING_ID, "VehicleSpeed", payload["vehicleSpeed"])
-        print("VehicleSpeed:", response.status_code)
+        receive_time = int(time.time())
+        send_time = payload.get("timestamp")
 
-        response = put_feature_value(THING_ID, "EngineSpeed", payload["engineSpeed"])
-        print("EngineSpeed:", response.status_code)
+        if send_time:
+            latency = receive_time - send_time
+            print(f"[LATENCY] Sent: {send_time}, Received: {receive_time}, Latency: {latency} sec")
 
-        response = put_feature_value(THING_ID, "ThrottlePosition", payload["throttlePosition"])
-        print("ThrottlePosition:", response.status_code)
+        if "vehicleSpeed" in payload:
+            response = put_feature_value(THING_ID, "VehicleSpeed", payload["vehicleSpeed"])
+            print("VehicleSpeed:", response.status_code)
+        else:
+            print("VehicleSpeed missing from payload")
 
-        response = put_feature_value(THING_ID, "CoolantTemperature", payload["coolantTemperature"])
-        print("CoolantTemperature:", response.status_code)
+        if "engineSpeed" in payload:
+            response = put_feature_value(THING_ID, "EngineSpeed", payload["engineSpeed"])
+            print("EngineSpeed:", response.status_code)
+        else:
+            print("EngineSpeed missing from payload")
 
-        response = put_feature_value(THING_ID, "BatteryHealth", payload["batteryHealth"])
-        print("BatteryHealth:", response.status_code)
+        if "throttlePosition" in payload:
+            response = put_feature_value(THING_ID, "ThrottlePosition", payload["throttlePosition"])
+            print("ThrottlePosition:", response.status_code)
+        else:
+            print("ThrottlePosition missing from payload")
 
-        overheatStatus = get_overheat_status(payload["coolantTemperature"])
-        response = put_feature_value(THING_ID, "OverheatStatus", overheatStatus)
-        print("OverheatStatus:", response.status_code)
+        if "coolantTemperature" in payload:
+            response = put_feature_value(THING_ID, "CoolantTemperature", payload["coolantTemperature"])
+            print("CoolantTemperature:", response.status_code)
+        else:
+            print("CoolantTemperature missing from payload")
 
-        aggressiveDrivingScore = get_aggressive_driving_score(
-            payload["vehicleSpeed"],
-            payload["engineSpeed"],
-            payload["throttlePosition"]
-        )
-        response = put_feature_value(THING_ID, "AggressiveDrivingScore", aggressiveDrivingScore)
-        print("AggressiveDrivingScore:", response.status_code)
+        if "batteryHealth" in payload:
+            response = put_feature_value(THING_ID, "BatteryHealth", payload["batteryHealth"])
+            print("BatteryHealth:", response.status_code)
+        else:
+            print("BatteryHealth missing from payload")
 
-        batteryHealthAlert = get_battery_health_alert(payload["batteryHealth"])
-        response = put_feature_value(THING_ID, "BatteryHealthAlert", batteryHealthAlert)
-        print("BatteryHealthAlert:", response.status_code)
+        if "coolantTemperature" in payload:
+            overheatStatus = get_overheat_status(payload["coolantTemperature"])
+            response = put_feature_value(THING_ID, "OverheatStatus", overheatStatus)
+            print("OverheatStatus:", response.status_code)
+        else:
+            print("OverheatStatus not updated because coolantTemperature is missing")
+
+        if (
+            "vehicleSpeed" in payload and
+            "engineSpeed" in payload and
+            "throttlePosition" in payload
+        ):
+            aggressiveDrivingScore = get_aggressive_driving_score(
+                payload["vehicleSpeed"],
+                payload["engineSpeed"],
+                payload["throttlePosition"]
+            )
+            response = put_feature_value(THING_ID, "AggressiveDrivingScore", aggressiveDrivingScore)
+            print("AggressiveDrivingScore:", response.status_code)
+        else:
+            print("AggressiveDrivingScore not updated because required signals are missing")
+
+        if "batteryHealth" in payload:
+            batteryHealthAlert = get_battery_health_alert(payload["batteryHealth"])
+            response = put_feature_value(THING_ID, "BatteryHealthAlert", batteryHealthAlert)
+            print("BatteryHealthAlert:", response.status_code)
+        else:
+            print("BatteryHealthAlert not updated because batteryHealth is missing")
 
         print("-----------------------------")
 

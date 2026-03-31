@@ -2,11 +2,23 @@ import asyncio
 import json
 import time
 import zenoh
+import random
 from kuksa_client.grpc.aio import VSSClient
 
 THING_ID = "my-vehicle"
 ZENOH_KEY = f"vehicle/{THING_ID}/telemetry"
-DELAY_SECONDS = 2
+
+MIN_DELAY = 0.5
+MAX_DELAY = 3
+
+MISSING_SIGNAL_CHANCE = 0.15
+OMITTABLE_FIELDS = [
+    "vehicleSpeed",
+    "engineSpeed",
+    "throttlePosition",
+    "coolantTemperature",
+    "batteryHealth"
+]
 
 async def main():
     with zenoh.open(zenoh.Config()) as session:
@@ -44,7 +56,15 @@ async def main():
                     await asyncio.sleep(1)
                     continue
 
-                await asyncio.sleep(DELAY_SECONDS)
+                if random.random() < MISSING_SIGNAL_CHANCE:
+                    missing_field = random.choice(OMITTABLE_FIELDS)
+                    del payload[missing_field]
+                    print(f"Missing-signal simulation: omitted {missing_field}")
+
+                delay_seconds = random.uniform(MIN_DELAY, MAX_DELAY)
+                print(f"Applying dynamic delay: {delay_seconds:.2f} seconds")
+                await asyncio.sleep(delay_seconds)
+
                 print("Publishing to Zenoh:", payload)
                 pub.put(json.dumps(payload))
                 await asyncio.sleep(1)
