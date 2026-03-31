@@ -62,7 +62,7 @@ Link: https://docs.docker.com/engine/install/
 
 `docker compose up`
 
-## Running the System
+## 3. Running the System
 
 ### Start up Kuksa with docker
 
@@ -103,3 +103,28 @@ Link: https://docs.docker.com/engine/install/
 `source env/bin/activate`
 
 `python zenoh_to_ditto.py`
+
+## 4. Iteration 2 Extensions
+
+In Iteration 2, the SDV pipeline was extended to simulate more realistic communication conditions and incomplete data scenarios.
+
+### Dynamic Delay Injection
+The fixed delay used in Iteration 1 has been replaced with a dynamic delay. Each telemetry message is delayed by a randomly generated amount of time before being published to Zenoh. This simulates variable network latency conditions.
+
+### Missing-Signal Simulation
+Telemetry payloads may now have one or more signals randomly omitted before being sent through Zenoh. This simulates sensor failure or incomplete data transmission. The backend system has been updated to safely handle missing data by skipping updates for missing fields.
+
+## 5 Observing Iteration 2 Extensions
+
+To run the pipeline follow the instruction mentioned in "3. Running the system".
+
+To observe the extention "Dynamic Delay" look at the terminal running the script `kuksa_to_zenoh.py`. In this terminal you can observe a message that mentions the dynamic delay as following "Applying Dynamic Delay: x.xx seconds".
+
+An example:
+<img width="1022" height="271" alt="image" src="https://github.com/user-attachments/assets/e2042fca-6ecf-41ae-a82b-600a07682cf9" />
+
+To observe the extention "Missing Signal" look at the terminal running the script `zenoh_to_ditto.py`. In this terminal you can observe certain payload data being mentioned as missing.
+
+An example:
+<img width="1020" height="255" alt="image" src="https://github.com/user-attachments/assets/e9a1e553-eacd-4b5c-a8b1-3103ac27631d" />
+
